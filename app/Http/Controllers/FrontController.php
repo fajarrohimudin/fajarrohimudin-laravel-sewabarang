@@ -38,6 +38,12 @@ class FrontController extends Controller
     {
         $category_id = session()->get('category_id');
 
+        if (!$category_id) {
+           return redirect()->route('front.index'); 
+        }
+
+        $category = Category::find($category_id);
+
         $products = Product::with('testimonials')->where('brand_id', $brand->id)
         ->where('category_id', $category_id)
         ->latest()
