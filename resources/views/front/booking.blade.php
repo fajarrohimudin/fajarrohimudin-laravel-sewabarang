@@ -68,7 +68,29 @@
             <input type="hidden" name="delivery_type" value="price" id="deliveryType"/>
             <input type="hidden" name="store_id" value="" id="storeId"/>
 			<div class="flex items-center justify-between px-5">
-				<label for="days" class="font-semibold">How many days?</label>
+				<div class="flex items-center justify-between px-5">
+					<label for="qty" class="font-semibold">How many items?</label>
+					<div class="flex items-center gap-3 relative">
+						<button type="button" id="MinusQty"
+							class="w-11 h-11 flex shrink-0 rounded-full transition-all duration-300 hover:ring-2 hover:ring-[#FCCF2F]">
+							<img src="{{asset('assets/images/icons/minus.svg')}}" alt="minus" />
+						</button>
+						<p id="CountQty" class="font-semibold text-lg leading-[27px]">1</p>
+						<input type="number" name="qty" id="Qty" value="1" min="1" max="{{$product->qty}}"
+							class="absolute -z-10 opacity-0 w-1" required />
+						<button type="button" id="PlusQty"
+							class="w-11 h-11 flex shrink-0 rounded-full transition-all duration-300 hover:ring-2 hover:ring-[#FCCF2F]">
+							<img src="{{asset('assets/images/icons/plus.svg')}}" alt="plus" />
+						</button>
+					</div>
+				</div>
+				{{-- Info stok --}}
+				<p class="px-5 text-xs text-[#6E6E70]">
+					Stok tersedia: 
+					<span class="font-semibold {{ $product->qty <= 3 ? 'text-red-500' : 'text-green-600' }}">
+						{{ $product->qty }} unit
+					</span>
+				</p>
 				<div class="flex items-center gap-3 relative">
 					<button type="button" id="Minus"
 						class="w-11 h-11 flex shrink-0 rounded-full transition-all duration-300 hover:ring-2 hover:ring-[#FCCF2F]">

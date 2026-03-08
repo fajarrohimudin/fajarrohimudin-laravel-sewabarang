@@ -8,11 +8,22 @@ const duration = document.getElementById("duration");
 const productPrice = document.getElementById("productPrice");
 const defaultPrice = productPrice.value;
 
+// ✅ QTY elements
+const minusQty = document.getElementById("MinusQty");
+const plusQty  = document.getElementById("PlusQty");
+const countQty = document.getElementById("CountQty");
+const qtyInput = document.getElementById("Qty");
+const maxQty   = parseInt(qtyInput.getAttribute("max"));
+
+// ✅ Update total: days x qty x price
 function updateTotalPrice() {
-    let subTotal = days.value * defaultPrice;
+    const currentDays = parseInt(days.value) || 1;
+    const currentQty  = parseInt(qtyInput.value) || 1;
+    let subTotal = currentDays * currentQty * defaultPrice;
     totalPrice.innerText = "Rp " + subTotal.toLocaleString('id-ID');
 }
 
+// --- DAYS counter ---
 minus.addEventListener("click", function() {
     let currentCount = parseInt(count.innerText);
     if (currentCount > 1) {
@@ -36,6 +47,29 @@ plus.addEventListener("click", function() {
 days.addEventListener("change", function () {
     count.innerText = days.value;
     updateTotalPrice();
+});
+
+// --- QTY counter ---
+minusQty.addEventListener("click", function() {
+    let current = parseInt(qtyInput.value);
+    if (current > 1) {
+        current -= 1;
+        qtyInput.value = current;
+        countQty.innerText = current;
+        updateTotalPrice();
+    }
+});
+
+plusQty.addEventListener("click", function() {
+    let current = parseInt(qtyInput.value);
+    if (current < maxQty) {
+        current += 1;
+        qtyInput.value = current;
+        countQty.innerText = current;
+        updateTotalPrice();
+    } else {
+        alert('Stok hanya tersedia ' + maxQty + ' unit');
+    }
 });
 
 updateTotalPrice();
@@ -73,7 +107,6 @@ document.addEventListener("DOMContentLoaded", function () {
         elmnt.classList.add("active", "ring-2", "ring-[#FCCF2F]");
     };
 
-    // Get the element with id="defaultOpen" and click on it
     document.getElementById("defaultOpen").click();
 });
 

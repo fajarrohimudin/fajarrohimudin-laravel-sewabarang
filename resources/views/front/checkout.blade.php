@@ -13,6 +13,32 @@
                 <img src="{{asset('assets/images/icons/more.svg')}}" alt="icon" />
             </button>
         </div>
+
+        {{-- ✅ Tampilkan error stok / validasi --}}
+        @if($errors->any())
+            <div class="mx-5 mt-5 flex flex-col gap-2">
+                @foreach($errors->all() as $error)
+                    <div class="py-3 px-4 w-full rounded-2xl bg-red-100 text-red-600 text-sm font-semibold">
+                        ⚠️ {{ $error }}
+                    </div>
+                @endforeach
+            </div>
+        @endif
+
+        {{-- ✅ Warning jika stok menipis --}}
+        @if($product->qty <= 3 && $product->qty > 0)
+            <div class="mx-5 mt-5 py-3 px-4 w-full rounded-2xl bg-yellow-100 text-yellow-700 text-sm font-semibold">
+                ⚡ Stok tersisa {{ $product->qty }} unit, segera checkout!
+            </div>
+        @endif
+
+        {{-- ✅ Warning jika stok habis --}}
+        @if($product->qty <= 0)
+            <div class="mx-5 mt-5 py-3 px-4 w-full rounded-2xl bg-red-100 text-red-600 text-sm font-semibold">
+                ❌ Stok produk ini sudah habis.
+            </div>
+        @endif
+
         <form method="POST" enctype="multipart/form-data" action="{{route('front.checkout.store')}}" class="flex flex-col gap-[30px] mt-[30px]">
             @csrf
             <section id="Product-name" class="flex flex-col gap-3 px-5">
@@ -32,13 +58,14 @@
                                     <img src="{{asset('assets/images/icons/verify.svg')}}" alt="verify">
                                 </div>
                             </div>
-                            <!-- <div class="flex items-center w-fit gap-1">
-                                <p class="font-semibold text-sm leading-[21px] text-[#6E6E70]">Insurance</p>
-                                <div class="w-5 h-5 flex shrink-0">
-                                    <img src="{{asset('assets/images/icons/verify.svg')}}" alt="verify">
-                                </div>
-                            </div> -->
                         </div>
+                        {{-- ✅ Tampilkan stok tersedia --}}
+                        <p class="text-xs text-[#6E6E70]">
+                            Stok tersedia: 
+                            <span class="font-semibold {{ $product->qty <= 3 ? 'text-red-500' : 'text-green-600' }}">
+                                {{ $product->qty }} unit
+                            </span>
+                        </p>
                     </div>
                 </div>
             </section>
@@ -51,16 +78,22 @@
                         <div class="w-6 h-6 flex shrink-0">
                             <img src="{{asset('assets/images/icons/user.svg')}}" alt="icon">
                         </div>
-                        <input type="text" name="name" id="name" class="appearance-none outline-none rounded-2xl w-full placeholder:font-normal placeholder:text-black font-semibold text-sm leading-[24px]" placeholder="Write your full name" required>
+                        <input type="text" name="name" id="name"
+                            value="{{ old('name') }}"
+                            class="appearance-none outline-none rounded-2xl w-full placeholder:font-normal placeholder:text-black font-semibold text-sm leading-[24px]"
+                            placeholder="Write your full name" required>
                     </div>
                 </div>
                 <div class="flex flex-col gap-2">
-                    <label for="Name" class="font-semibold">Phone Number</label>
+                    <label for="phone_number" class="font-semibold">Phone Number</label>
                     <div class="group w-full rounded-2xl border border-[#EDEEF0] p-[18px_14px] flex items-center gap-3 relative transition-all duration-300 focus-within:ring-2 focus-within:ring-[#FCCF2F]">
                         <div class="w-6 h-6 flex shrink-0">
                             <img src="{{asset('assets/images/icons/call.svg')}}" alt="icon">
                         </div>
-                        <input type="tel" name="phone_number" id="Name" class="appearance-none outline-none rounded-2xl w-full placeholder:font-normal placeholder:text-black font-semibold text-sm leading-[24px]" placeholder="Write your phone number" required>
+                        <input type="tel" name="phone_number" id="phone_number"
+                            value="{{ old('phone_number') }}"
+                            class="appearance-none outline-none rounded-2xl w-full placeholder:font-normal placeholder:text-black font-semibold text-sm leading-[24px]"
+                            placeholder="Write your phone number" required>
                     </div>
                 </div>
             </div>
@@ -85,46 +118,47 @@
             <hr class="border-[#EDEEF0] mx-5">
             <div id="Send-Payment" class="flex flex-col px-5 gap-3">
                 <h2 class="font-semibold text-lg leading-[27px]">Payment</h2>
-
-                <!-- Container flex-wrap untuk logo -->
                 <div class="flex flex-wrap gap-3">
-                    <!-- BCA -->
                     <div class="w-[71px] h-[50px] flex-shrink-0">
                         <img src="{{ asset('assets/images/logos/bca.svg') }}" class="w-full h-full object-contain" alt="bca logo">
                     </div>
-                    <!-- Mandiri -->
                     <div class="w-[71px] h-[50px] flex-shrink-0">
                         <img src="{{ asset('assets/images/logos/mandiri.svg') }}" class="w-full h-full object-contain" alt="mandiri logo">
                     </div>
-                    <!-- BNI -->
                     <div class="w-[71px] h-[50px] flex-shrink-0">
                         <img src="{{ asset('assets/images/logos/bni.png') }}" class="w-full h-full object-contain" alt="bni logo">
                     </div>
-                    <!-- BRI -->
                     <div class="w-[71px] h-[50px] flex-shrink-0">
                         <img src="{{ asset('assets/images/logos/bri.png') }}" class="w-full h-full object-contain" alt="bri logo">
                     </div>
-                    <!-- GoPay -->
                     <div class="w-[71px] h-[50px] flex-shrink-0">
                         <img src="{{ asset('assets/images/logos/gopay.png') }}" class="w-full h-full object-contain" alt="gopay logo">
                     </div>
-                    <!-- QRIS -->
                     <div class="w-[71px] h-[50px] flex-shrink-0">
                         <img src="{{ asset('assets/images/logos/qris.png') }}" class="w-full h-full object-contain" alt="qris logo">
                     </div>
                 </div>
             </div>
 
-            <!-- Tombol bawah -->
             <div id="Bottom-nav" class="fixed bottom-0 max-w-[640px] w-full mx-auto border-t border-[#F1F1F1] overflow-hidden z-10">
                 <div class="bg-white/50 backdrop-blur-sm absolute w-full h-full"></div>
                 <div class="p-5 relative z-10">
-                    <button type="submit" class="rounded-full p-[12px_24px] bg-[#FCCF2F] font-bold w-full">Confirm Payment</button>
+                    {{-- ✅ Disable tombol jika stok habis --}}
+                    @if($product->qty <= 0)
+                        <button type="button" disabled
+                            class="rounded-full p-[12px_24px] bg-gray-300 text-gray-500 font-bold w-full cursor-not-allowed">
+                            Stok Habis
+                        </button>
+                    @else
+                        <button type="submit"
+                            class="rounded-full p-[12px_24px] bg-[#FCCF2F] font-bold w-full">
+                            Confirm Payment
+                        </button>
+                    @endif
                 </div>
             </div>
         </form>
     </main>
-
 @endsection
 
 @push('after-scripts')

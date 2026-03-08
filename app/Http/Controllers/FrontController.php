@@ -75,7 +75,7 @@ class FrontController extends Controller
     {
         session()->put('product_id', $product->id);
 
-        $bookingData = $request->only(['duration', 'started_at', 'store_id', 'delivery_type', 'address']);
+        $bookingData = $request->only(['duration', 'started_at', 'store_id', 'delivery_type', 'address', 'qty']);
         session($bookingData);
         return redirect()->route('front.checkout', $product->slug);
     }
@@ -83,19 +83,21 @@ class FrontController extends Controller
     public function checkout(Product $product)
     {
         $duration = session('duration');
+        $qty      = session('qty', 1);
 
         $price = $product->price;
 
         $subTotal = $price * $duration;
         $grandTotal = $subTotal;
 
-        return view('front.checkout', compact('product', 'subTotal', 'grandTotal', 'price', 'duration'));
+        return view('front.checkout', compact('product', 'subTotal', 'grandTotal', 'price', 'duration', 'qty'));
     }
 
     public function checkout_store(StorePaymentRequest $request)
     {
         $bookingData = session()->only(['duration', 'started_at', 'store_id', 'delivery_type', 'address', 'product_id']);
         $duration = (int) $bookingData['duration'];
+        $qty = (int) ($bookingData['qty'] ?? 1);
         $startedDate = Carbon::parse($bookingData['started_at']);
 
         $productDetails = Product::find($bookingData['product_id']);
@@ -103,42 +105,48 @@ class FrontController extends Controller
             return redirect()->back()->withErrors(['product_id' => 'Product tidak ada.']);
         }
 
-        $price = $productDetails->price;
+        // ✅ Cek stok sebelum proses checkout
+        if ($productDetails->qty < $qty) {
+            return redirect()->back()->withErrors([
+                'qty' => "Stok tidak cukup. Tersedia: {$productDetails->qty} unit."
+            ]);
+        }
 
-        $subTotal = $price * $duration;
+        $price = $productDetails->price;
+        $subTotal = $price * $duration * $qty;
         $grandTotal = $subTotal;
 
         $bookingTransactionId = null;
 
-        DB::transaction(function() use ($request, &$bookingTransactionId, $duration, $bookingData, $grandTotal, $productDetails, $startedDate){
+        DB::transaction(function() use ($request, &$bookingTransactionId, $duration, $qty, $bookingData, $grandTotal, $productDetails, $startedDate){
             $validated = $request->validated();
 
             if($request->hasFile('proof')){
-                $proofPath = $request->file('proof')->store('proofs'. 'public');
+                $proofPath = $request->file('proof')->store('proofs', 'public');
                 $validated['proof'] = $proofPath;
             }
 
             $endedDate = $startedDate->copy()->addDays($duration);
 
-            $validated['started_at'] = $startedDate;
-            $validated['ended_at'] = $endedDate;
-            $validated['duration'] = $duration;
-            $validated['total_amount'] = $grandTotal;
-            $validated['store_id'] = $bookingData['store_id'];
-            $validated['product_id'] = $productDetails->id;
-            $validated['delivery_type'] = $bookingData['delivery_type'];
-            $validated['address'] = $bookingData['address'];
-            $validated['is_paid'] = false;
-            $validated['trx_id'] = Transaction::generateUniqueTrxId();
-            $validated['user_id'] = Auth::user()->id;
-            $validated['transaction_status'] = 'IN_CART';
+            $validated['started_at']          = $startedDate;
+            $validated['ended_at']            = $endedDate;
+            $validated['duration']            = $duration;
+            $validated['qty']                 = $qty; 
+            $validated['total_amount']        = $grandTotal;
+            $validated['store_id']            = $bookingData['store_id'];
+            $validated['product_id']          = $productDetails->id;
+            $validated['delivery_type']       = $bookingData['delivery_type'];
+            $validated['address']             = $bookingData['address'];
+            $validated['is_paid']             = false;
+            $validated['trx_id']              = Transaction::generateUniqueTrxId();
+            $validated['user_id']             = Auth::user()->id;
+            $validated['transaction_status']  = 'IN_CART';
+            $validated['status']              = 'proses'; // ✅ set default status rental
 
             $newBooking = Transaction::create($validated);
-
             $bookingTransactionId = $newBooking->id;
         });
 
-        // return redirect()->route('front.success.booking', $bookingTransactionId);
         return redirect()->route('front.payment', $bookingTransactionId);
     }
 
