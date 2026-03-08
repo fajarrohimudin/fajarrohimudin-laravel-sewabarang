@@ -26,6 +26,7 @@ class StoreBookingRequest extends FormRequest
             'store_id' => ['required', 'integer'],
             'started_at' => ['required', 'date', 'after:today'],
             'address' => ['required', 'string'],
+            'qty' => 'required|integer|min:1',
         ];
     }
 }

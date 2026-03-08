@@ -39,20 +39,20 @@ class FrontController extends Controller
         $category_id = session()->get('category_id');
 
         if (!$category_id) {
-           return redirect()->route('front.index'); 
+            return redirect()->route('front.index');
         }
 
         $category = Category::find($category_id);
 
         $products = Product::with('testimonials')->where('brand_id', $brand->id)
-        ->where('category_id', $category_id)
-        ->latest()
-        ->get();
+            ->where('category_id', $category_id)
+            ->latest()
+            ->get();
 
         // buat back
         $category = Category::where('id', $category_id)
-        ->first();
-        
+            ->first();
+
         return view('front.gadgets', compact('brand', 'products', 'category'));
     }
 
@@ -60,7 +60,7 @@ class FrontController extends Controller
     {
         // buat back
         $brand = Brand::where('id', $product->brand_id)
-        ->first();
+            ->first();
 
         return view('front.details', compact('product', 'brand'));
     }
@@ -95,7 +95,7 @@ class FrontController extends Controller
 
     public function checkout_store(StorePaymentRequest $request)
     {
-        $bookingData = session()->only(['duration', 'started_at', 'store_id', 'delivery_type', 'address', 'product_id']);
+        $bookingData = session()->only(['duration', 'started_at', 'store_id', 'delivery_type', 'address', 'product_id', 'qty']);
         $duration = (int) $bookingData['duration'];
         $qty = (int) ($bookingData['qty'] ?? 1);
         $startedDate = Carbon::parse($bookingData['started_at']);
@@ -118,10 +118,10 @@ class FrontController extends Controller
 
         $bookingTransactionId = null;
 
-        DB::transaction(function() use ($request, &$bookingTransactionId, $duration, $qty, $bookingData, $grandTotal, $productDetails, $startedDate){
+        DB::transaction(function () use ($request, &$bookingTransactionId, $duration, $qty, $bookingData, $grandTotal, $productDetails, $startedDate) {
             $validated = $request->validated();
 
-            if($request->hasFile('proof')){
+            if ($request->hasFile('proof')) {
                 $proofPath = $request->file('proof')->store('proofs', 'public');
                 $validated['proof'] = $proofPath;
             }
@@ -131,7 +131,7 @@ class FrontController extends Controller
             $validated['started_at']          = $startedDate;
             $validated['ended_at']            = $endedDate;
             $validated['duration']            = $duration;
-            $validated['qty']                 = $qty; 
+            $validated['qty']                 = $qty;
             $validated['total_amount']        = $grandTotal;
             $validated['store_id']            = $bookingData['store_id'];
             $validated['product_id']          = $productDetails->id;
@@ -210,8 +210,8 @@ class FrontController extends Controller
     public function transactions()
     {
         $transactions = Transaction::where('user_id', Auth::user()->id)
-        ->orderBy('id', 'DESC')
-        ->get();
+            ->orderBy('id', 'DESC')
+            ->get();
 
         return view('front.my_booking', compact('transactions'));
     }
@@ -257,8 +257,8 @@ class FrontController extends Controller
 
         if ($validator->fails()) {
             return redirect()->back()
-                             ->withErrors($validator)
-                             ->withInput();
+                ->withErrors($validator)
+                ->withInput();
         }
 
         Testimonial::create([
@@ -276,7 +276,4 @@ class FrontController extends Controller
     {
         return view('front.show_testimonials', compact('testimonial'));
     }
-
-
 }
- 
